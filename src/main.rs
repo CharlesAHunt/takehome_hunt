@@ -1,28 +1,56 @@
 mod models;
 
 use std::collections::HashMap;
+use std::future::Future;
+use std::process::exit;
 use chrono::prelude::*;
+use reqwest::Error;
+use crate::models::DataStore;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-    //This is a stand-in for an actual persistent datastore, perhaps would use something like etcd instead
-    let ds = models::DataStore {
+    let ds = DataStore {
         price_history:HashMap::new(),
         stats:HashMap::new()
     };
 
-    let f = monitor_currency_pairs(ds).await?;
-    monitor_currency_pairs(f).await?;
+    match monitor_currency_pairs(ds).await {
+        Ok(data_store) => {
+            let stats_debug = data_store.stats;
+            println!("Stats Results: {stats_debug:#?}");
+            exit(0)
+        },
+        Err(err) => {
+            eprintln!("Error: {}", err);
+            exit(1);
+        }
+    }
 
-    Ok(())
 }
 
-async fn monitor_currency_pairs(mut ds: models::DataStore)-> Result<models::DataStore, reqwest::Error> {
-    let resp = reqwest::get("https://api.gemini.com/v1/pricefeed")
-        .await?
-        .json::<Vec<models::SymbolPricePairAPI>>()
-        .await?;
+async fn monitor_currency_pairs(mut ds: DataStore)-> Result<DataStore, Error> {
+    let resp = match reqwest::get("https://api.gemini.com/v1/pricefeed").await {
+        Ok(response) => {
+            response
+        }
+        Err(error) => {
+            models::Alert {
+                timestamp: Utc::now(),
+                log_level: String::from("ERROR"),
+                trading_pair: None,
+                is_deviation: true,
+                data: models::AlertMetaData {
+                    error_message: Option::from(error.to_string()),
+                    last_price: None,
+                    avg_price: None,
+                    deviation: None,
+                    price_change: None,
+                }
+            };
+            exit(1);
+        }
+    }.json::<Vec<models::SymbolPricePairAPI>>().await?;
 
     let resp_iterator = resp.into_iter();
 
@@ -47,13 +75,14 @@ async fn monitor_currency_pairs(mut ds: models::DataStore)-> Result<models::Data
                     let alert = models::Alert {
                         timestamp: Utc::now(),
                         log_level: String::from("WARN"),
-                        trading_pair: pair_key.to_owned(),
+                        trading_pair: Option::from(pair_key.to_owned()),
                         is_deviation: true,
                         data: models::AlertMetaData {
-                            last_price: latest_price,
-                            avg_price: stats.mean,
-                            deviation: if stats.std_dev == 0.0 { 0.0 } else { latest_price / stats.std_dev },
-                            price_change: stats.most_recent_price - latest_price
+                            error_message: None,
+                            last_price: Option::from(latest_price),
+                            avg_price: Option::from(stats.mean),
+                            deviation: Option::from(if stats.std_dev == 0.0 { stats.std_dev } else { latest_price / stats.std_dev }),
+                            price_change: Option::from(stats.most_recent_price - latest_price)
                         }
                     };
                     println!("{:?}", sonic_rs::to_string(&alert).unwrap());
@@ -76,7 +105,5 @@ async fn monitor_currency_pairs(mut ds: models::DataStore)-> Result<models::Data
         ds.stats.insert(pair_key.to_owned(), pair_stat);
     }
 
-    let debug_stats = &ds.stats;
-    // println!("{debug_stats:#?}");
     Ok(ds)
 }

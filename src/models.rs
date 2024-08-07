@@ -25,15 +25,16 @@ pub(crate) struct SymbolPricePairAPI {
 pub(crate) struct Alert {
     pub timestamp: chrono::DateTime<chrono::Utc>,
     pub log_level: String,
-    pub trading_pair: String,
+    pub trading_pair: Option<String>,
     pub is_deviation: bool,
     pub data: AlertMetaData
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct AlertMetaData {
-    pub last_price: f32,
-    pub avg_price: f32,
-    pub deviation: f32,
-    pub price_change: f32
+    pub error_message: Option<String>,
+    pub last_price: Option<f32>,
+    pub avg_price: Option<f32>,
+    pub deviation: Option<f32>,
+    pub price_change: Option<f32>
 }
