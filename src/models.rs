@@ -15,6 +15,7 @@ pub(crate) struct DataStore {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub(crate) struct SymbolPricePairAPI {
     pub pair: String,
     pub price: String,
