@@ -1,5 +1,4 @@
-
-● Any necessary instructions for running your script
+###Any necessary instructions for running your script
 
 The script tracks stats in memory, to emulate calling it repeatedly every hour and updating the stats I call
 monitor_currency_pairs(ds) in a loop with a delay and pass the result to the next invocation.
@@ -16,12 +15,13 @@ Run with Cargo:
 
    `cargo run --package takehome_hunt --bin takehome_hunt`
     
-● Any dependencies that need to be met
+###Any dependencies that need to be met
+
 * To run with Docker, must have Docker engine
 * To run with Cargo, must install Cargo for the Rust ecosystem
   * https://doc.rust-lang.org/cargo/getting-started/installation.html
 
-● What you would do next to further improve it
+### What you would do next to further improve it
 * Use a separate persistent data store for the hourly results, instead of storing in memory
   * Etcd, DynamoDB, Redis
 * Run this script with a k8s job, perhaps with a persistent volume for data or an external store
@@ -32,13 +32,13 @@ Run with Cargo:
 * Handle indexing the data per hour in the map so we are working with hourly data, not data from each run which may not be on an hourly basis
   * Could assume the job is running with an hourly cron and avoid that work
 
-● Other interesting checks you might implement to alert on market behaviour
+### Other interesting checks you might implement to alert on market behaviour
 * Alert for "stuck" prices, alerting for no price change over X days
 * Missing symbols, symbols that previously existed that are no longer returned from the feed
 * Alert for new symbols not in the previous feed
 * Use MAD, Median Absolute Deviation
 
-● Your approach to solving the task, and any issues you faced with implementation
+### Your approach to solving the task, and any issues you faced with implementation
 * Decided to use the feeds API since it provided all the symbols and prices in a single API call
 * Iterate around all values from the API, calculating the stats for each and updating the memory map
 * Add a delay of 1s between 4 invocations to emulate the script being called each hour
