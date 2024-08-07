@@ -45,3 +45,6 @@ Run with Cargo:
 * Decided to use a library for stats calculation instead of 'reinventing the wheel'
 * Assume that this script would persist the DataStore data to a persistent datastore or persistent volume in a prod scenario
 * Assume there is a K8s cron job or something similar to trigger a run each hour
+
+### Time to write
+* ~4 hours
