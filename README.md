@@ -1,4 +1,4 @@
-###Any necessary instructions for running your script
+### Any necessary instructions for running your script
 
 The script tracks stats in memory, to emulate calling it repeatedly every hour and updating the stats I call
 monitor_currency_pairs(ds) in a loop with a delay and pass the result to the next invocation.
@@ -15,7 +15,7 @@ Run with Cargo:
 
    `cargo run --package takehome_hunt --bin takehome_hunt`
     
-###Any dependencies that need to be met
+### Any dependencies that need to be met
 
 * To run with Docker, must have Docker engine
 * To run with Cargo, must install Cargo for the Rust ecosystem
